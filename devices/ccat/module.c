@@ -368,6 +368,8 @@ static struct pci_driver ccat_pci_driver = {
 module_pci_driver(ccat_pci_driver);
 
 #else /* #ifdef CONFIG_GENERIC_ISA_DMA */
+static const size_t CCAT_EIM_ADDR = 0xf0000000;
+static const size_t CCAT_EIM_LEN = 0x02000000;
 
 static int ccat_eim_probe(struct platform_device *pdev)
 {
@@ -381,12 +383,12 @@ static int ccat_eim_probe(struct platform_device *pdev)
 	ccatdev->pdev = pdev;
 	platform_set_drvdata(pdev, ccatdev);
 
-	if (!request_mem_region(0xf0000000, 0x02000000, pdev->name)) {
+	if (!request_mem_region(CCAT_EIM_ADDR, CCAT_EIM_LEN, pdev->name)) {
 		pr_warn("request mem region failed.\n");
 		return -EIO;
 	}
 
-	if (!(ccatdev->bar_0 = ioremap(0xf0000000, 0x02000000))) {
+	if (!(ccatdev->bar_0 = ioremap(CCAT_EIM_ADDR, CCAT_EIM_LEN))) {
 		pr_warn("initialization of bar0 failed.\n");
 		return -EIO;
 	}
@@ -410,7 +412,7 @@ static int ccat_eim_remove(struct platform_device *pdev)
 	if (ccatdev) {
 		ccat_functions_remove(ccatdev);
 		iounmap(ccatdev->bar_0);
-		release_mem_region(0xf0000000, 0x02000000);
+		release_mem_region(CCAT_EIM_ADDR, CCAT_EIM_LEN);
 	}
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6,11,0)
 	return 0;
