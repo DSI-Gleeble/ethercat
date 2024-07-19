@@ -66,9 +66,14 @@ struct ec_fsm_slave_config
 
 /****************************************************************************/
 
-void ec_fsm_slave_config_init(ec_fsm_slave_config_t *, ec_datagram_t *,
-        ec_fsm_change_t *, ec_fsm_coe_t *, ec_fsm_soe_t *, ec_fsm_pdo_t *,
-        ec_fsm_eoe_t *);
+#ifdef EC_EOE
+    void ec_fsm_slave_config_init(ec_fsm_slave_config_t *, ec_datagram_t *,
+         ec_fsm_change_t *, ec_fsm_coe_t *, ec_fsm_soe_t *, ec_fsm_pdo_t *,
+         ec_fsm_eoe_t *);
+#else
+    void ec_fsm_slave_config_init(ec_fsm_slave_config_t *, ec_datagram_t *,
+        ec_fsm_change_t *, ec_fsm_coe_t *, ec_fsm_soe_t *, ec_fsm_pdo_t *);
+#endif
 void ec_fsm_slave_config_clear(ec_fsm_slave_config_t *);
 
 void ec_fsm_slave_config_start(ec_fsm_slave_config_t *, ec_slave_t *);

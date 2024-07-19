@@ -104,11 +104,18 @@ void ec_fsm_master_init(
     ec_fsm_coe_init(&fsm->fsm_coe);
     ec_fsm_soe_init(&fsm->fsm_soe);
     ec_fsm_pdo_init(&fsm->fsm_pdo, &fsm->fsm_coe);
+#ifdef EC_EOE
     ec_fsm_eoe_init(&fsm->fsm_eoe);
+#endif
     ec_fsm_change_init(&fsm->fsm_change, fsm->datagram);
+#ifdef EC_EOE
     ec_fsm_slave_config_init(&fsm->fsm_slave_config, fsm->datagram,
             &fsm->fsm_change, &fsm->fsm_coe, &fsm->fsm_soe, &fsm->fsm_pdo,
             &fsm->fsm_eoe);
+#else
+    ec_fsm_slave_config_init(&fsm->fsm_slave_config, fsm->datagram,
+            &fsm->fsm_change, &fsm->fsm_coe, &fsm->fsm_soe, &fsm->fsm_pdo);
+#endif
     ec_fsm_slave_scan_init(&fsm->fsm_slave_scan, fsm->datagram,
             &fsm->fsm_slave_config, &fsm->fsm_pdo);
     ec_fsm_sii_init(&fsm->fsm_sii, fsm->datagram);

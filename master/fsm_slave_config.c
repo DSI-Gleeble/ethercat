@@ -124,8 +124,10 @@ void ec_fsm_slave_config_init(
         ec_fsm_change_t *fsm_change, /**< State change state machine to use. */
         ec_fsm_coe_t *fsm_coe, /**< CoE state machine to use. */
         ec_fsm_soe_t *fsm_soe, /**< SoE state machine to use. */
-        ec_fsm_pdo_t *fsm_pdo, /**< PDO configuration state machine to use. */
-        ec_fsm_eoe_t *fsm_eoe /**< EoE state machine to use. */
+#ifdef EC_EOE
+        ec_fsm_eoe_t *fsm_eoe, /**< EoE state machine to use. */
+#endif
+        ec_fsm_pdo_t *fsm_pdo /**< PDO configuration state machine to use. */
         )
 {
     ec_sdo_request_init(&fsm->request_copy);
@@ -991,6 +993,8 @@ void ec_fsm_slave_config_state_eoe_ip_param(
         ec_fsm_slave_config_t *fsm /**< slave state machine */
         )
 {
+#if EC_EOE
+
     ec_slave_t *slave = fsm->slave;
 
     if (ec_fsm_eoe_exec(fsm->fsm_eoe, fsm->datagram)) {
@@ -1003,6 +1007,8 @@ void ec_fsm_slave_config_state_eoe_ip_param(
     else {
         EC_SLAVE_ERR(slave, "Failed to set EoE IP parameters.\n");
     }
+
+#endif
 
     ec_fsm_slave_config_enter_pdo_conf(fsm);
 }
