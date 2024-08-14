@@ -755,6 +755,7 @@ void ecrt_slave_config_overlapping_pdos(ec_slave_config_t *sc,
                 __func__, sc, allow_overlapping_pdos);
 
     sc->allow_overlapping_pdos = allow_overlapping_pdos;
+    return 0;
 }
 
 /*****************************************************************************/

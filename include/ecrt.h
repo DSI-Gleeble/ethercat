@@ -1385,8 +1385,12 @@ EC_PUBLIC_API int ecrt_slave_config_watchdog(
  *
  * Overlapping PDOs allows inputs to use the same space as outputs on the frame.
  * This reduces the frame length.
+ * 
+ * \apiusage{master_idle,blocking}
+ * 
+ * \return 0 on success.
  */
-void ecrt_slave_config_overlapping_pdos(
+EC_PUBLIC_API void ecrt_slave_config_overlapping_pdos(
         ec_slave_config_t *sc, /**< Slave configuration. */
         uint8_t allow_overlapping_pdos /**< Allow overlapping PDOs */
         );
