@@ -748,7 +748,7 @@ int ecrt_slave_config_watchdog(ec_slave_config_t *sc,
 
 /****************************************************************************/
 
-void ecrt_slave_config_overlapping_pdos(ec_slave_config_t *sc,
+int ecrt_slave_config_overlapping_pdos(ec_slave_config_t *sc,
         uint8_t allow_overlapping_pdos )
 {
     EC_CONFIG_DBG(sc, 1, "%s(sc = 0x%p, allow_overlapping_pdos = %u)\n",
