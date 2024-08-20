@@ -138,7 +138,7 @@ int ecrt_slave_config_watchdog(ec_slave_config_t *sc,
 
 /****************************************************************************/
 
-void ecrt_slave_config_overlapping_pdos(ec_slave_config_t *sc,
+int ecrt_slave_config_overlapping_pdos(ec_slave_config_t *sc,
         uint8_t allow_overlapping_pdos)
 {
     ec_ioctl_config_t data;
@@ -150,7 +150,9 @@ void ecrt_slave_config_overlapping_pdos(ec_slave_config_t *sc,
     if (ioctl(sc->master->fd, EC_IOCTL_SC_OVERLAPPING_IO, &data) == -1) {
         fprintf(stderr, "Failed to config overlapping PDOs: %s\n",
                 strerror(errno));
+        return errno;
     }
+    return 0;
 }
 
 /*****************************************************************************/

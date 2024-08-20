@@ -1390,7 +1390,7 @@ EC_PUBLIC_API int ecrt_slave_config_watchdog(
  * 
  * \return 0 on success.
  */
-EC_PUBLIC_API void ecrt_slave_config_overlapping_pdos(
+EC_PUBLIC_API int ecrt_slave_config_overlapping_pdos(
         ec_slave_config_t *sc, /**< Slave configuration. */
         uint8_t allow_overlapping_pdos /**< Allow overlapping PDOs */
         );
