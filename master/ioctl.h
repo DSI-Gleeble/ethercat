@@ -161,6 +161,8 @@
 #define EC_IOCTL_VOE_EXEC             EC_IOWR(0x64, ec_ioctl_voe_t)
 #define EC_IOCTL_VOE_DATA             EC_IOWR(0x65, ec_ioctl_voe_t)
 #define EC_IOCTL_SET_SEND_INTERVAL     EC_IOW(0x66, size_t)
+#define EC_IOCTL_64_REF_CLK_TIME_QUEUE  EC_IO(0x68)
+#define EC_IOCTL_64_REF_CLK_TIME       EC_IOR(0x69, uint64_t)
 
 /****************************************************************************/
 
