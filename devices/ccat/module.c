@@ -1,21 +1,8 @@
+// SPDX-License-Identifier: MIT
 /**
     Network Driver for Beckhoff CCAT communication controller
-    Copyright (C) 2014-2015  Beckhoff Automation GmbH
+    Copyright (C) Beckhoff Automation GmbH & Co. KG
     Author: Patrick Bruenn <p.bruenn@beckhoff.com>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
 #include <linux/etherdevice.h>
@@ -229,6 +216,7 @@ static int ccat_functions_init(struct ccat_device *const ccatdev)
 	const void __iomem *end = addr + (block_size * num_func);
 
 	INIT_LIST_HEAD(&ccatdev->functions);
+	pr_info("CCAT date: %04d-%02d-%02d\n", 2000 + ioread8(addr + 7), ioread8(addr + 6), ioread8(addr + 5));
 	for (; addr < end && next; addr += block_size) {
 		memcpy_fromio(&next->info, addr, sizeof(next->info));
 		if (CCATINFO_NOTUSED != next->info.type) {
@@ -367,6 +355,8 @@ static struct pci_driver ccat_pci_driver = {
 module_pci_driver(ccat_pci_driver);
 
 #else /* #ifdef CONFIG_GENERIC_ISA_DMA */
+static const size_t CCAT_EIM_ADDR = 0xf0000000;
+static const size_t CCAT_EIM_LEN = 0x02000000;
 
 static int ccat_eim_probe(struct platform_device *pdev)
 {
@@ -380,12 +370,12 @@ static int ccat_eim_probe(struct platform_device *pdev)
 	ccatdev->pdev = pdev;
 	platform_set_drvdata(pdev, ccatdev);
 
-	if (!request_mem_region(0xf0000000, 0x02000000, pdev->name)) {
+	if (!request_mem_region(CCAT_EIM_ADDR, CCAT_EIM_LEN, pdev->name)) {
 		pr_warn("request mem region failed.\n");
 		return -EIO;
 	}
 
-	if (!(ccatdev->bar_0 = ioremap(0xf0000000, 0x02000000))) {
+	if (!(ccatdev->bar_0 = ioremap(CCAT_EIM_ADDR, CCAT_EIM_LEN))) {
 		pr_warn("initialization of bar0 failed.\n");
 		return -EIO;
 	}
@@ -409,7 +399,7 @@ static int ccat_eim_remove(struct platform_device *pdev)
 	if (ccatdev) {
 		ccat_functions_remove(ccatdev);
 		iounmap(ccatdev->bar_0);
-		release_mem_region(0xf0000000, 0x02000000);
+		release_mem_region(CCAT_EIM_ADDR, CCAT_EIM_LEN);
 	}
 #if LINUX_VERSION_CODE < KERNEL_VERSION(6,11,0)
 	return 0;
