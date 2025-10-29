@@ -161,6 +161,7 @@
 #define EC_IOCTL_VOE_EXEC             EC_IOWR(0x64, ec_ioctl_voe_t)
 #define EC_IOCTL_VOE_DATA             EC_IOWR(0x65, ec_ioctl_voe_t)
 #define EC_IOCTL_SET_SEND_INTERVAL     EC_IOW(0x66, size_t)
+#define EC_IOCTL_SC_OVERLAPPING_IO     EC_IOW(0x67, ec_ioctl_config_t)
 
 /****************************************************************************/
 
@@ -504,6 +505,7 @@ typedef struct {
     int32_t slave_position;
     uint16_t dc_assign_activate;
     ec_sync_signal_t dc_sync[EC_SYNC_SIGNAL_COUNT];
+    uint8_t allow_overlapping_pdos;
 } ec_ioctl_config_t;
 
 /****************************************************************************/
