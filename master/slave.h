@@ -212,6 +212,7 @@ struct ec_slave
     size_t sii_nwords; /**< Size of the SII contents in words. */
 
     // Slave information interface
+    uint16_t *vendor_words; /**< First 16 words of SII image. */
     ec_sii_t sii; /**< Extracted SII data. */
 
     struct list_head sdo_dictionary; /**< SDO dictionary list */

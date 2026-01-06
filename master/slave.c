@@ -109,6 +109,7 @@ void ec_slave_init(
     slave->has_dc_system_time = 0;
     slave->transmission_delay = 0U;
 
+    slave->vendor_words = NULL;
     slave->sii_words = NULL;
     slave->sii_nwords = 0;
 
@@ -232,6 +233,11 @@ void ec_slave_clear(ec_slave_t *slave /**< EtherCAT slave */)
         list_del(&sdo->list);
         ec_sdo_clear(sdo);
         kfree(sdo);
+    }
+
+    if (slave->vendor_words) {
+        kfree(slave->vendor_words);
+        slave->vendor_words = NULL;
     }
 
     // free all strings
