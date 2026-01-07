@@ -58,7 +58,7 @@
    Request firmware direct from file.
  */
 
-static int request_firmware_direct(
+static int request_firmware_from_file(
        ec_slave_t *slave,
        const char *filename,
        struct firmware **out_firmware
@@ -73,27 +73,31 @@ static int request_firmware_direct(
     struct file     *filp;
     struct firmware *firmware;
     umode_t          permission;
-    mm_segment_t     old_fs;
     loff_t           pos;
-    char             pathname[strlen(filename) + sizeof(EC_SII_DIR)];
+    ssize_t          bytes_read;
+    char             pathname[256];
 
     if (filename == NULL)
         return -EFAULT;
-    if (strlen(filename) + 14 >= 256)   // Sanity check.
-        return -EFAULT;
+    if (strlen(filename) + strlen(EC_SII_DIR) + 2 >= sizeof(pathname)) {
+        EC_SLAVE_ERR(slave, "Firmware path too long.\n");
+        return -ENAMETOOLONG;
+    }
 
     EC_SLAVE_DBG(slave, 1, "request_firmware_direct: %s.\n", filename);
-    sprintf(pathname, EC_SII_DIR "/%s", filename);
+    snprintf(pathname, sizeof(pathname), EC_SII_DIR "/%s", filename);
 
     // does the file exist?
-    filp = filp_open(pathname, 0, O_RDONLY);
-    if ((IS_ERR(filp)) || (filp == NULL) || (filp->f_dentry == NULL)) {
-        retval = -ENOENT;
+    filp = filp_open(pathname, O_RDONLY, 0);
+    if ((IS_ERR(filp)) || (filp == NULL)) {
+        retval = PTR_ERR(filp);
+        if (retval == 0)
+            retval = -ENOENT;
         goto out;
     }
 
     // must have correct permissions
-    permission = filp->f_dentry->d_inode->i_mode;
+    permission = file_inode(filp)->i_mode;
     if ((permission & permreqd) != permreqd) {
         EC_SLAVE_WARN(slave, "Firmware %s not readable.\n", filename);
         retval = -EPERM;
@@ -111,7 +115,7 @@ static int request_firmware_direct(
         retval = -ENOMEM;
         goto error_file;
     }
-    firmware->size = filp->f_dentry->d_inode->i_size;
+    firmware->size = file_inode(filp)->i_size;
 
     if (!(firmware->data = kmalloc(firmware->size, GFP_KERNEL))) {
         EC_SLAVE_ERR(slave, "Failed to allocate memory (firmware data).\n");
@@ -119,22 +123,23 @@ static int request_firmware_direct(
         goto error_firmware;
     }
 
-    // read the firmware (need to temporarily allow access to kernel mem)
-    old_fs = get_fs();
-    set_fs(KERNEL_DS);
-
+    // read the firmware using kernel_read (no need for set_fs anymore)
     pos = 0;
     while (pos < firmware->size) {
-        retval = vfs_read(filp, (char __user *) firmware->data + pos,
+        bytes_read = kernel_read(filp, (char *) firmware->data + pos,
                           firmware->size - pos, &pos);
-        if (retval < 0) {
-            set_fs(old_fs);
+        if (bytes_read < 0) {
+            retval = bytes_read;
             EC_SLAVE_ERR(slave, "Failed to read firmware (%d).\n", retval);
             goto error_firmware_data;
         }
+        if (bytes_read == 0) {
+            // Unexpected EOF
+            retval = -EIO;
+            EC_SLAVE_ERR(slave, "Unexpected EOF reading firmware.\n");
+            goto error_firmware_data;
+        }
     }
-
-    set_fs(old_fs);
 
     EC_SLAVE_INFO(slave, "SII firmware loaded from file %s.\n", filename);
     filp_close(filp, NULL);
@@ -181,7 +186,7 @@ static int request_firmware_direct_work_func(void *arg)
     struct firmware_request_context *ctx = arg;
     struct firmware *fw = NULL;
 
-    if (request_firmware_direct(ctx->slave, ctx->filename, &fw) == 0) {
+    if (request_firmware_from_file(ctx->slave, ctx->filename, &fw) == 0) {
         firmware_request_complete(fw, ctx);
     } else {
         firmware_request_complete(NULL, ctx);
@@ -313,12 +318,12 @@ void ec_request_sii_firmware(
     }
 
     sprintf(ctx->filename_vendor_product, "ethercat/ec_%08x_%08x.bin",
-            slave->sii_image->sii.vendor_id,
-            slave->sii_image->sii.product_code);
+            slave->sii.vendor_id,
+            slave->sii.product_code);
     sprintf(ctx->filename_vendor_product_revision, "ethercat/ec_%08x_%08x_%08x.bin",
-            slave->sii_image->sii.vendor_id,
-            slave->sii_image->sii.product_code,
-            slave->sii_image->sii.revision_number);
+            slave->sii.vendor_id,
+            slave->sii.product_code,
+            slave->sii.revision_number);
     ctx->slave = slave;
     ctx->cont = cont;
     ctx->context = context;

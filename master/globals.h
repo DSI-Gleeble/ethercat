@@ -85,6 +85,21 @@
 /** Word offset of first SII category. */
 #define EC_FIRST_SII_CATEGORY_OFFSET 0x40
 
+/** Word offset of SII revision number. */
+#define EC_REVISION_SII_OFFSET 0x0C
+
+/** Word offset of SII alias. */
+#define EC_ALIAS_SII_OFFSET 0x04
+
+/** Word offset of SII vendor ID. */
+#define EC_VENDOR_SII_OFFSET 0x08
+
+/** Word offset of SII product number. */
+#define EC_PRODUCT_SII_OFFSET 0x0A
+
+/** Word offset of SII serial number. */
+#define EC_SERIAL_SII_OFFSET 0x0E
+
 /** Size of a sync manager configuration page. */
 #define EC_SYNC_PAGE_SIZE 8
 

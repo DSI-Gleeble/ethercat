@@ -635,13 +635,13 @@ void ec_fsm_slave_scan_state_sii_device(
     }
 
     // Evaluate SII contents
-    slave->sii_image->sii.alias           = EC_READ_U16(slave->vendor_words + EC_ALIAS_SII_OFFSET);
-    slave->sii_image->sii.vendor_id       = EC_READ_U32(slave->vendor_words + EC_VENDOR_SII_OFFSET);
-    slave->sii_image->sii.product_code    = EC_READ_U32(slave->vendor_words + EC_PRODUCT_SII_OFFSET);
-    slave->sii_image->sii.revision_number = EC_READ_U32(slave->vendor_words + EC_REVISION_SII_OFFSET);
-    slave->sii_image->sii.serial_number   = EC_READ_U32(slave->vendor_words + EC_SERIAL_SII_OFFSET);
-    
-    slave->effective_alias                = slave->sii_image->sii.alias;
+    slave->sii.alias           = EC_READ_U16(slave->vendor_words + EC_ALIAS_SII_OFFSET);
+    slave->sii.vendor_id       = EC_READ_U32(slave->vendor_words + EC_VENDOR_SII_OFFSET);
+    slave->sii.product_code    = EC_READ_U32(slave->vendor_words + EC_PRODUCT_SII_OFFSET);
+    slave->sii.revision_number = EC_READ_U32(slave->vendor_words + EC_REVISION_SII_OFFSET);
+    slave->sii.serial_number   = EC_READ_U32(slave->vendor_words + EC_SERIAL_SII_OFFSET);
+
+    slave->effective_alias                = slave->sii.alias;
 
     ec_fsm_slave_scan_enter_sii_request(fsm);
 }
@@ -732,17 +732,17 @@ void ec_fsm_slave_scan_state_sii_request(
     } else if (firmware) {
         EC_SLAVE_DBG(slave, 1, "Firmware file found, reading %zu bytes.\n", firmware->size);
 
-        slave->sii_image->nwords = firmware->size / 2;
+        slave->sii_nwords = firmware->size / 2;
 
-        if (slave->sii_image->words) {
+        if (slave->sii_words) {
             EC_SLAVE_WARN(slave, "Freeing old SII data...\n");
-            kfree(slave->sii_image->words);
+            kfree(slave->sii_words);
         }
-        if (!(slave->sii_image->words =
-              (uint16_t *) kmalloc(slave->sii_image->nwords * 2, GFP_KERNEL))) {
+        if (!(slave->sii_words =
+              (uint16_t *) kmalloc(slave->sii_nwords * 2, GFP_KERNEL))) {
             EC_SLAVE_ERR(slave, "Failed to allocate %zu words of SII data.\n",
-                slave->sii_image->nwords);
-            slave->sii_image->nwords = 0;
+                slave->sii_nwords);
+            slave->sii_nwords = 0;
             slave->error_flag = 1;
             ec_release_sii_firmware(firmware);
             fsm->sii_firmware = NULL;
@@ -751,7 +751,7 @@ void ec_fsm_slave_scan_state_sii_request(
             return;
         }
 
-        memcpy(slave->sii_image->words, firmware->data, slave->sii_image->nwords * 2);
+        memcpy(slave->sii_words, firmware->data, slave->sii_nwords * 2);
         ec_release_sii_firmware(firmware);
         fsm->sii_firmware = NULL;
 
@@ -759,7 +759,7 @@ void ec_fsm_slave_scan_state_sii_request(
         fsm->state(fsm); // execute state immediately
     } else {
         // do nothing while waiting for async request to complete
-        fsm->datagram->state = EC_DATAGRAM_INVALID;
+        fsm->datagram->state = EC_DATAGRAM_ERROR;
     }
 }
 #endif
@@ -834,7 +834,7 @@ alloc_sii:
 
 #ifdef EC_SII_OVERRIDE
     // Copy vendor data to sii words
-    memcpy(slave->sii_image->words, slave->vendor_words, 32);
+    memcpy(slave->sii_words, slave->vendor_words, 32);
     kfree(slave->vendor_words);
     slave->vendor_words = NULL;
     
