@@ -1,6 +1,6 @@
 /*****************************************************************************
  *
- *  Copyright (C) 2006-2024  Florian Pose, Ingenieurgemeinschaft IgH
+ *  Copyright (C) 2006-2026  Florian Pose, Ingenieurgemeinschaft IgH
  *
  *  This file is part of the IgH EtherCAT master.
  *
@@ -47,7 +47,7 @@
  *
  * Increment this when changing the ioctl interface!
  */
-#define EC_IOCTL_VERSION_MAGIC 37
+#define EC_IOCTL_VERSION_MAGIC 38
 
 // Command-line tool
 #define EC_IOCTL_MODULE                EC_IOR(0x00, ec_ioctl_module_t)
@@ -161,9 +161,10 @@
 #define EC_IOCTL_VOE_EXEC             EC_IOWR(0x64, ec_ioctl_voe_t)
 #define EC_IOCTL_VOE_DATA             EC_IOWR(0x65, ec_ioctl_voe_t)
 #define EC_IOCTL_SET_SEND_INTERVAL     EC_IOW(0x66, size_t)
-#define EC_IOCTL_SC_OVERLAPPING_IO     EC_IOW(0x67, ec_ioctl_config_t)
-#define EC_IOCTL_64_REF_CLK_TIME_QUEUE  EC_IO(0x68)
-#define EC_IOCTL_64_REF_CLK_TIME       EC_IOR(0x69, uint64_t)
+#define EC_IOCTL_SII_CACHING           EC_IOW(0x67, uint32_t)
+#define EC_IOCTL_SC_OVERLAPPING_IO     EC_IOW(0x68, ec_ioctl_config_t)
+#define EC_IOCTL_64_REF_CLK_TIME_QUEUE  EC_IO(0x69)
+#define EC_IOCTL_64_REF_CLK_TIME       EC_IOR(0x70, uint64_t)
 
 /****************************************************************************/
 
@@ -214,6 +215,7 @@ typedef struct {
     uint64_t app_time;
     uint64_t dc_ref_time;
     uint16_t ref_clock;
+    uint32_t sii_caching;
 } ec_ioctl_master_t;
 
 /****************************************************************************/
@@ -259,6 +261,7 @@ typedef struct {
     uint8_t sync_count;
     uint16_t sdo_count;
     uint32_t sii_nwords;
+    uint32_t sii_parallel_words;
     char group[EC_IOCTL_STRING_SIZE];
     char image[EC_IOCTL_STRING_SIZE];
     char order[EC_IOCTL_STRING_SIZE];
